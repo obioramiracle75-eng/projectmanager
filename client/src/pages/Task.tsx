@@ -2,7 +2,8 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import TaskCard from "../components/TaskCard";
-import { fetchTasks, deleteTask, Task } from "../api";
+import { fetchTasks, deleteTask } from "../api";
+import type { Task } from "../api";
 
 function Tasks() {
   const [tasks, setTasks] = useState<Task[]>([]);
