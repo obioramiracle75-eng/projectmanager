@@ -20,18 +20,6 @@ const startServer = async () => {
     res.send("Backend Working");
   });
 
-  app.post("/api/tasks", (req, res) => {
-    res.send("Create Task");
-  });
-
-  app.put("/api/tasks/:id", (req, res) => {
-    res.send("Update Task");
-  });
-
-  app.delete("/api/tasks/:id", (req, res) => {
-    res.send("Delete Task");
-  });
-
   const PORT = process.env.PORT || 5000;
   app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);

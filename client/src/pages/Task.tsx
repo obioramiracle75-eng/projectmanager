@@ -1,8 +1,41 @@
+import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import TaskCard from "../components/TaskCard";
-import { Link } from "react-router-dom";
+import { fetchTasks, deleteTask, Task } from "../api";
 
 function Tasks() {
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const loadTasks = async () => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const data = await fetchTasks();
+      setTasks(data);
+    } catch (err) {
+      setError("Unable to load tasks from the backend.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    try {
+      await deleteTask(id);
+      setTasks((current) => current.filter((task) => task._id !== id));
+    } catch (err) {
+      setError("Unable to delete task. Please try again.");
+    }
+  };
+
+  useEffect(() => {
+    loadTasks();
+  }, []);
+
   return (
     <>
       <Navbar />
@@ -16,37 +49,29 @@ function Tasks() {
           </Link>
         </div>
 
-        <TaskCard
-          id="1"
-          tag="Urgent"
-          tagColor="text-[#f38383]"
-          title="FinTech Website Update"
-          description="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Amet quis nibh posuere non tempor. Erat mattis gravida pulvinar nibh aliquam faucibus et magna. Interdum eu tempus ultricies cras neque mi. Eget tellus suspendisse et viverra."
-        />
+        {loading && <p className="text-gray-500">Loading tasks...</p>}
+        {error && <p className="text-red-500">{error}</p>}
 
-        <TaskCard
-          id="2"
-          tag="Important"
-          tagColor="text-[#4ade80]"
-          title="Agro Website Update"
-          description="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Amet quis nibh posuere non tempor. Erat mattis gravida pulvinar nibh aliquam faucibus et magna. Interdum eu tempus ultricies cras neque mi. Eget tellus suspendisse et viverra."
-        />
+        {!loading && tasks.length === 0 && (
+          <p className="text-gray-600">
+            No tasks found. Add a new task to get started.
+          </p>
+        )}
 
-        <TaskCard
-          id="3"
-          tag="Urgent"
-          tagColor="text-[#f38383]"
-          title="FinTech Website Update"
-          description="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Amet quis nibh posuere non tempor. Erat mattis gravida pulvinar nibh aliquam faucibus et magna. Interdum eu tempus ultricies cras neque mi. Eget tellus suspendisse et viverra."
-        />
+        {tasks.map((task) => (
+          <TaskCard
+            key={task._id}
+            id={task._id}
+            tag={task.tag}
+            tagColor={
+              task.tag === "Urgent" ? "text-[#f38383]" : "text-[#4ade80]"
+            }
+            title={task.title}
+            description={task.description}
+            onDelete={handleDelete}
+          />
+        ))}
 
-        <TaskCard
-          id="4"
-          tag="Important"
-          tagColor="text-[#4ade80]"
-          title="Agro Website Update"
-          description="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Amet quis nibh posuere non tempor. Erat mattis gravida pulvinar nibh aliquam faucibus et magna. Interdum eu tempus ultricies cras neque mi. Eget tellus suspendisse et viverra."
-        />
         <div className="text-center mt-10">
           <a href="#" className="text-[#974fd0] text-sm">
             Back To Top

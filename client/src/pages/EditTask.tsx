@@ -1,126 +1,113 @@
+import { useEffect, useState, type FormEvent } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import Navbar from "../components/Navbar";
+import { getTask, updateTask } from "../api";
 
 function EditTask() {
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [tag, setTag] = useState("Urgent");
+  const [error, setError] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const { id } = useParams();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const loadTask = async () => {
+      if (!id) return;
+      setError(null);
+      setIsLoading(true);
+
+      try {
+        const task = await getTask(id);
+        setTitle(task.title);
+        setDescription(task.description);
+        setTag(task.tag);
+      } catch (err) {
+        setError(
+          "Unable to load that task. Please check the backend or the task ID.",
+        );
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadTask();
+  }, [id]);
+
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!id) return;
+
+    setError(null);
+    setIsSaving(true);
+
+    try {
+      await updateTask(id, { title, description, tag });
+      navigate("/tasks");
+    } catch (err) {
+      setError("Unable to update the task. Please try again.");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   return (
-    // <>
-    //   <Navbar />
-
-    //   <div>
-    //     <form className="space-y-8">
-    //       <fieldset className="border border-gray-300 rounded">
-    //         <legend className="ml-4 px-1 text-[#9c9c9c] text-sm">
-    //           Task Title
-    //         </legend>
-
-    //         <input
-    //           type="text"
-    //           placeholder="E.g Project Completion ..."
-    //           className="w-full px-6 pb-4 outline-none text-sm"
-    //         />
-    //       </fieldset>
-
-    //       <fieldset className="border border-gray-300 rounded">
-    //         <legend className="ml-4 px-1 text-[#9c9c9c] text-sm">
-    //           Description
-    //         </legend>
-
-    //         <textarea
-    //           rows={6}
-    //           placeholder="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Viverra sit in aliquam pretium. Diam consectetur at tincidunt sed non tempus faucibus posuere eu. Nisi, luctus turpis pharetra quis nunc nulla. At lectus faucibus mattis ante eleifend ac arcu. Nibh morbi adipiscing leo tempus non dolor viverra cras. Sapien in nulla cum fermentum auctor lectus orci. Felis tincidunt lacus, fermentum laoreet sit sit. Lacus, orci pretium, etiam justo lacus. Amet, ultrices eget auctor euismod vitae diam."
-    //           className="w-[798px] h-[120px] px-6 pb-4 outline-none resize-none text-sm"
-    //         />
-    //       </fieldset>
-
-    //       <fieldset className="border border-gray-300 rounded">
-    //         <legend className="ml-4 px-1 text-[#9c9c9c] text-sm">Tags</legend>
-
-    //         <div className="flex justify-between items-center px-6 py-4">
-    //           <div className="flex gap-2">
-    //             <span className="bg-[#292929] text-[#cccccc] text-xs px-2 py-1 rounded">
-    //               Urgent
-    //             </span>
-
-    //             <span className="bg-[#292929] text-[#cccccc] text-xs px-2 py-1 rounded">
-    //               Important
-    //             </span>
-    //           </div>
-
-    //           <span className="text-[#9c9c9c] text-xl">▼</span>
-    //         </div>
-    //       </fieldset>
-
-    //       <button
-    //         type="submit"
-    //         className="w-full bg-[#974fd0] text-white py-4 rounded"
-    //       >
-    //         Done
-    //       </button>
-
-    //       <div className="text-center">
-    //         <a href="#" className="text-[#974fd0] text-sm">
-    //           Back To Top
-    //         </a>
-    //       </div>
-    //     </form>
-    //   </div>
-    // </>
     <>
       <Navbar />
 
       <div className="max-w-2xl mx-auto py-10 px-6">
         <h1 className="text-3xl font-semibold mb-8">Edit Task</h1>
 
-        <form className="space-y-6">
-          <div>
-            <label className="block mb-2 font-medium">Task Title</label>
+        {isLoading ? (
+          <p className="text-gray-500">Loading task details...</p>
+        ) : (
+          <form className="space-y-6" onSubmit={handleSubmit}>
+            {error && <p className="text-red-500">{error}</p>}
 
-            <input
-              type="text"
-              defaultValue="FinTech Website Update"
-              className="w-full border rounded-lg p-3"
-            />
-          </div>
+            <div>
+              <label className="block mb-2 font-medium">Task Title</label>
+              <input
+                type="text"
+                value={title}
+                onChange={(event) => setTitle(event.target.value)}
+                className="w-full border rounded-lg p-3"
+              />
+            </div>
 
-          <div>
-            <label className="block mb-2 font-medium">Description</label>
+            <div>
+              <label className="block mb-2 font-medium">Description</label>
+              <textarea
+                rows={6}
+                value={description}
+                onChange={(event) => setDescription(event.target.value)}
+                className="w-full border rounded-lg p-3"
+              />
+            </div>
 
-            <textarea
-              rows={6}
-              defaultValue="Update the landing page design and improve responsiveness for mobile devices."
-              className="w-full border rounded-lg p-3"
-            />
-            <p>
-              Lorem ipsum dolor sit amet, consectetur adipiscing elit. Viverra
-              sit in aliquam pretium. Diam consectetur at tincidunt sed non
-              tempus faucibus posuere eu. Nisi, luctus turpis pharetra quis nunc
-              nulla. At lectus faucibus mattis ante eleifend ac arcu. Nibh morbi
-              adipiscing leo tempus non dolor viverra cras. Sapien in nulla cum
-              fermentum auctor lectus orci. Felis tincidunt lacus, fermentum
-              laoreet sit sit. Lacus, orci pretium, etiam justo lacus. Amet,
-              ultrices eget auctor euismod vitae diam.
-            </p>
-          </div>
+            <div>
+              <label className="block mb-2 font-medium">Tag</label>
+              <select
+                value={tag}
+                onChange={(event) => setTag(event.target.value)}
+                className="w-full border rounded-lg p-3"
+              >
+                <option value="Urgent">Urgent</option>
+                <option value="Important">Important</option>
+                <option value="Personal">Personal</option>
+              </select>
+            </div>
 
-          <div>
-            <label className="block mb-2 font-medium">Category</label>
-
-            <select
-              defaultValue="Work"
-              className="w-full border rounded-lg p-3"
+            <button
+              type="submit"
+              disabled={isSaving}
+              className="w-full bg-[#974fd0] text-white py-3 rounded-lg"
             >
-              <option>Work</option>
-              <option>Personal</option>
-              <option>Urgent</option>
-            </select>
-          </div>
-
-          <button
-            type="submit"
-            className="w-full bg-[#974fd0] text-white py-3 rounded-lg"
-          >
-            Save Changes
-          </button>
-        </form>
+              {isSaving ? "Saving..." : "Save Changes"}
+            </button>
+          </form>
+        )}
       </div>
     </>
   );
